@@ -1,0 +1,164 @@
+---
+title: "Summarize and Plot Function"
+author: "Lyreshka Castro Morales"
+date: "2024-10-26"
+---
+
+# Function 
+The `summarize_and_plot` function generates summary statistics (mean, median, standard deviation, max, min) of specified numeric columns grouped by one or more variables, and creates plots (e.g., box, scatter, density, histogram, or bar plots) for each column or as combined plots, depending on the specified combined_plot argument. I designed the `summarize_and_plot`function to be a quick and efficient data exploration tool, that allows for an overview of key trends before a more in-depth analysis. Additionally, the reasoning behind the name is that it combines summary statistics and customization of basics plots rapidly asses relationships.
+
+
+```{r, message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+
+#' Summarize and plot Function for multiple variables.
+#'
+#' This function summarizes specified numeric variables in a dataset and 
+#' creates various types of plots (box, scatter, density, histogram, bar).
+#'
+#' @param data A data frame containing the variables to analyze.
+#' @param x_var A string specifying the independent variable (categorical).
+#' @param y_vars A character vector of dependent variables (numeric).
+#' @param plot_types A character vector of plot types to create.
+#' @param y_var_colors An optional named vector of colors for each y_var.
+#' @param group_by An optional variable for grouping the summary.
+#' @param combined_plot A boolean indicating if combined plots should be created.
+#' @return A list containing the summary table and generated plots.
+#' @examples
+#' x_var <- "cyl"
+#' y_vars <- c("mpg", "hp", "wt")
+#' plot_types <- c("box", "scatter", "density", "histogram", "bar")
+#' custom_colors <- c(mpg = "purple", hp = "orange", wt = "green")
+#' result <- summarize_and_plot(mtcars, x_var, y_vars, plot_types, 
+#'                                   y_var_colors = custom_colors, combined_plot = TRUE)
+summarize_and_plot <- function(data, x_var, y_vars, plot_types, 
+                                   y_var_colors = NULL, group_by = NULL, combined_plot = FALSE) {
+  
+  # Ensure columns are numeric for summaries
+  data_numeric <- data %>% 
+    mutate(across(all_of(y_vars), as.numeric))
+  
+  # group by if group_by is specified
+  summary_table <- data_numeric %>%
+    group_by(across(all_of(c(x_var, group_by)))) %>%
+    summarize(across(all_of(y_vars), list(mean = ~mean(.x, na.rm = TRUE), 
+                                          median = ~median(.x, na.rm = TRUE), 
+                                          sd = ~sd(.x, na.rm = TRUE), 
+                                          max = ~max(.x, na.rm = TRUE), 
+                                          min = ~min(.x, na.rm = TRUE))),
+              .groups = 'drop')
+  
+  # Use default colors if y_var_colors not provided
+  if (is.null(y_var_colors)) {
+    y_var_colors <- setNames(rainbow(length(y_vars)), y_vars)
+  }
+  
+  # Store plots in a named list
+  plots <- list()
+  
+  # create individual plots
+  create_plot <- function(y_var, plot_type) {
+    p <- switch(plot_type,
+                "box" = ggplot(data, aes_string(x = x_var, 
+                                                y = y_var,
+                                                color = shQuote(y_var))) + 
+                  geom_boxplot() + 
+                  scale_color_manual(values = y_var_colors) + 
+                  labs(title = paste("Boxplot of",
+                                     y_var, "by", x_var)),
+                
+                "scatter" = ggplot(data, aes_string(x = x_var,
+                                                    y = y_var, 
+                                                    color = shQuote(y_var))) + 
+                  geom_point() + 
+                  scale_color_manual(values = y_var_colors) + 
+                  labs(title = paste("Scatter plot of", y_var, "by", x_var)),
+                
+                "density" = ggplot(data, aes_string(x = y_var, 
+                                                    color = shQuote(y_var))) + 
+                  geom_density() + 
+                  scale_color_manual(values = y_var_colors) + 
+                  labs(title = paste("Density plot of", y_var)),
+                
+                "histogram" = ggplot(data, aes_string(x = y_var,
+                                                      fill = shQuote(y_var))) + 
+                  geom_histogram(bins = 30, color = "black") + 
+                  scale_fill_manual(values = y_var_colors) + 
+                  labs(title = paste("Histogram of", y_var)),
+                
+                "bar" = ggplot(data, aes_string(x = x_var,
+                                                y = y_var, 
+                                                fill = shQuote(y_var))) + 
+                  geom_bar(stat = "identity", 
+                           color = "black") + 
+                  scale_fill_manual(values = y_var_colors) + 
+                  labs(title = paste("Bar chart of", y_var, "by", x_var))
+    )
+    return(p)
+  }
+  
+  # individual or combined plots based on argument
+  for (plot_type in plot_types) {
+    if (combined_plot) {
+      # combined plot with all y_vars in a single plot
+      p <- ggplot(data, aes_string(x = x_var)) + 
+        labs(title = paste("Combined",
+                           plot_type, 
+                           "of", 
+                           paste(y_vars, collapse = ", "), "by", x_var))
+      
+      for (y_var in y_vars) {
+        p <- switch(plot_type,
+                    "box" = p + geom_boxplot(aes_string(y = y_var, 
+                                                        fill = shQuote(y_var)),
+                                             color = y_var_colors[y_var],
+                                             alpha = 0.5),
+                    
+                    "scatter" = p + geom_point(aes_string(y = y_var,
+                                                          color = shQuote(y_var))) +
+                      scale_color_manual(values = y_var_colors),
+                    
+                    "density" = p + geom_density(aes_string(x = y_var, 
+                                                            color = shQuote(y_var)),
+                                                 alpha = 0.5) +
+                      scale_color_manual(values = y_var_colors),
+                    
+                    "histogram" = p + geom_histogram(aes_string(x = y_var, 
+                                                                fill = shQuote(y_var)),
+                                                     bins = 30,
+                                                     color = "black",
+                                                     alpha = 0.5, 
+                                                     position = "identity") +
+                      scale_fill_manual(values = y_var_colors),
+                    
+                    "bar" = p + geom_bar(aes_string(y = y_var,
+                                                    fill = shQuote(y_var)),
+                                         stat = "identity", 
+                                         position = "dodge",
+                                         color = "black") +
+                      scale_fill_manual(values = y_var_colors)
+        )
+      }
+      
+      plots[[paste("Combined", plot_type, sep = "_")]] <- p
+    } else {
+      #  individual plots for each y_var
+      for (y_var in y_vars) {
+        plot_name <- paste(plot_type, y_var, sep = "_")
+        p <- create_plot(y_var, plot_type)
+        plots[[plot_name]] <- p
+      }
+    }
+  }
+  
+  # Display all plots (not needed but useful)
+  grid.arrange(grobs = plots, 
+               ncol = 2)  # Adjust as needed
+  
+  # Return summary table and named list of plots
+  return(list(summary_table = summary_table, 
+              plots = plots))
+}
+```
