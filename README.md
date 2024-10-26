@@ -1,12 +1,14 @@
-# Model Calibration and Plotting
+# Summarize and Plot
 
-This repository contains a function called `calibrate_and_plot` that calibrates multiple model forecasts and provides visualization options. It is designed to streamline the process of model evaluation and visualization in predictive modeling workflows. While testing multiple models or generating predictions, the process of visualizing and calibrating each model can become time-consuming, especially with larger datasets. This function helps streamline these tasks by efficiently evaluating and comparing multiple models with minimal code. 
+This repository contains a function `summarize_and_plot_all` that summarizes numeric data and generates various plots for visualization. The function allows users to specify which variables to analyze, the types of plots to create, and how to group the data. Its a quick way to gather results for further exploration of data. 
 
-## Usage
+Key features:
+- Summarizes data with mean, median, standard deviation, max, and min.
+- Generates box plots, scatter plots, density plots, histograms, and bar charts.
+- Supports custom colors for the plots.
+- Can create combined plots for multiple variables by using `y_var`.
 
-To use the `calibrate_and_plot`, you need to provide fitted model objects and specify whether to use testing or training data.
-
-```r
-calibrate_and_plot(model_fit1, model_fit2, type = "testing")
-calibrate_and_plot(model_fit1, model_fit2, type = "training")
-```
+## Requirements
+- R (version 4.0 or higher)
+- Required packages: `dplyr`, `ggplot2`, `gridExtra`
+  
