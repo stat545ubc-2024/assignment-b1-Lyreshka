@@ -213,12 +213,15 @@ result_vancouver$plots$box_diameter
 
 ```
 Results for all plots:
+
 ![1](https://github.com/user-attachments/assets/61c208e3-c338-41ef-ac87-7a0ef7cd5dd7)
 
 Summary of Variables:
+
 ![table1](https://github.com/user-attachments/assets/628cb268-9cdd-4e60-abbf-4b5624eeaaf8)
 
 Individual plot:
+
 ![2](https://github.com/user-attachments/assets/60cd3990-7563-4713-9c09-8dc36fb7baa3)
 
 There is too much going on so we can also use `filter()` and use the function `summarize_and_plot()` as follows: 
@@ -326,7 +329,6 @@ result_diamonds$plots$Combined_scatter
 
 ![6](https://github.com/user-attachments/assets/c989fe75-4ace-4a82-b393-b0fa4b335db1)
 
-
 ![7](https://github.com/user-attachments/assets/ee6bd78f-457f-4a9e-9b22-b415cca75b42)
 
 ![table4](https://github.com/user-attachments/assets/1436e8f5-c591-4956-8297-7a299fe9aee6)
@@ -393,6 +395,7 @@ test_summarize_and_plot(mtcars, "cyl",
 
 
 ```
+![test2](https://github.com/user-attachments/assets/c6ef8d65-9e45-4493-b639-b9d26a03ec48)
 
 ```{r}
 # Example test with iris
@@ -405,6 +408,7 @@ test_summarize_and_plot(iris,
                         plot_types = c("box", 
                                        "density"))
 ```
+![test1](https://github.com/user-attachments/assets/36c30355-1a6f-4978-9487-fe9e0287345a)
 
 The `summarize_and_plot` function has basic clean up abilities such as making the `y_var`'s numeric and grouping. As this is v.1.1 there are still some kinks like further personalizing each graph and using different variables to make plots from the selected `y_vars` and `x_vars` rather than just the default, but from the test, this is a good start to exploring data rapidly and efficiently before diving in. 
 
